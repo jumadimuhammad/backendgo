@@ -57,7 +57,7 @@ func (store *UserStoreMySQL) All() []User {
 	return users
 }
 
-func CreateUser(name, address string, telp int, email, password, role string) (*User, error) {
+func CreateUser(name, address string, telp int, email, password, role, token string) (*User, error) {
 	return &User{
 		Name:     name,
 		Address:  address,
@@ -65,18 +65,20 @@ func CreateUser(name, address string, telp int, email, password, role string) (*
 		Email:    email,
 		Password: password,
 		Role:     role,
+		Token:    token,
 	}, nil
 }
 
 func (store *UserStoreMySQL) Save(user *User) error {
 	result, err := store.DB.Exec(`
-		INSERT INTO user(name, address, telp, email, password, role) VALUES(?,?,?,?,?,?)`,
+		INSERT INTO user(name, address, telp, email, password, role, token) VALUES(?,?,?,?,?,?,?)`,
 		user.Name,
 		user.Address,
 		user.Telp,
 		user.Email,
 		user.Password,
 		user.Role,
+		user.Token,
 	)
 
 	if err != nil {

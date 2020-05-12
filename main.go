@@ -52,12 +52,13 @@ func app(e *echo.Echo, store model.UserStore) {
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 		role := "3"
+		token := "secret"
 
 		//Hashing password
 		hashed := model.Hash(password)
 
 		// Create instabce
-		user, _ := model.CreateUser(name, address, telp, email, hashed, role)
+		user, _ := model.CreateUser(name, address, telp, email, hashed, role, token)
 
 		// Persist
 		store.Save(user)
