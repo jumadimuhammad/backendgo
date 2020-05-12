@@ -14,6 +14,15 @@ import (
 
 func app(e *echo.Echo, store model.UserStore) {
 
+	// curl http://localhost:8080
+	e.GET("/", func(c echo.Context) error {
+		// Process
+		user := "Welcome......."
+
+		// Response
+		return c.JSON(http.StatusOK, user)
+	})
+
 	// curl http://localhost:8080/users
 	e.GET("/users", func(c echo.Context) error {
 		// Process
@@ -41,10 +50,10 @@ func app(e *echo.Echo, store model.UserStore) {
 		role, _ := strconv.Atoi(c.Param("role"))
 
 		// Process
-		user := store.FindRole(role)
+		users := store.FindRole(role)
 
 		// Response
-		return c.JSON(http.StatusOK, user)
+		return c.JSON(http.StatusOK, users)
 	})
 
 	e.POST("/users", func(c echo.Context) error {
