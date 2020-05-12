@@ -1,10 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 	"github.com/jumadimuhammad/backendgo/model"
 	"github.com/labstack/echo"
 )
@@ -105,11 +108,16 @@ func app(e *echo.Echo, store model.UserStore) {
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	var store model.UserStore
 	store = model.NewUserMySQL()
 
 	e := echo.New()
 	app(e, store)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

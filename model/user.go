@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 )
 
@@ -33,7 +34,8 @@ type User struct {
 }
 
 func NewUserMySQL() UserStore {
-	dsn := "root:password@tcp(localhost:3308)/db_charity?parseTime=true&clientFoundRows=true"
+	dsn := os.Getenv("DATABASE_USER") + ":" + os.Getenv("DATABASE_PASSWORD") + "@tcp(" + os.Getenv("DATABASE_HOST") + ")/" + os.Getenv("DATABASE_NAME") + "?parseTime=true&clientFoundRows=true"
+	// dsn := "root:password@tcp(localhost:3308)/db_charity?parseTime=true&clientFoundRows=true"
 	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
