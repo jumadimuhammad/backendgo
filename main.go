@@ -11,7 +11,7 @@ import (
 
 func app(e *echo.Echo, store model.UserStore) {
 
-	// curl http://localhost:8080/articles
+	// curl http://localhost:8080/users
 	e.GET("/users", func(c echo.Context) error {
 		// Process
 		users := store.All()
@@ -20,7 +20,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		return c.JSON(http.StatusOK, users)
 	})
 
-	// curl http://localhost:8080/articles/1
+	// curl http://localhost:8080/users/1
 	e.GET("/users/:id", func(c echo.Context) error {
 		// Given
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -32,7 +32,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		return c.JSON(http.StatusOK, user)
 	})
 
-	// curl http://localhost:8080/articles/1
+	// curl http://localhost:8080/users/3/role
 	e.GET("/users/:role/role", func(c echo.Context) error {
 		// Given
 		role, _ := strconv.Atoi(c.Param("role"))
