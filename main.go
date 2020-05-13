@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -66,10 +67,15 @@ func app(e *echo.Echo, store model.UserStore) {
 		token := "secret"
 
 		//Hashing password
-		hashed := model.Hash(password)
+		hash, err := model.Hash(password)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		hashpwd := string(hash)
 
 		// Create instabce
-		user, _ := model.CreateUser(name, address, telp, email, hashed, role, token)
+		user, _ := model.CreateUser(name, address, telp, email, hashpwd, role, token)
 
 		// Persist
 		store.Save(user)
@@ -89,7 +95,15 @@ func app(e *echo.Echo, store model.UserStore) {
 		user.Telp, _ = strconv.Atoi(c.FormValue("telp"))
 		user.Email = c.FormValue("email")
 		password := c.FormValue("password")
-		user.Password = model.Hash(password)
+
+		hash, err := model.Hash(password)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		hashpwd := string(hash)
+
+		user.Password = hashpwd
 
 		// Persists
 		store.Update(user)
@@ -112,15 +126,25 @@ func app(e *echo.Echo, store model.UserStore) {
 		return c.JSON(http.StatusOK, user)
 	})
 
+	e.POST("/login", func(c echo.Context) error {
+		// Given
+		email := c.FormValue("email")
+		password := c.FormValue("password")
+
+		user := store.Login(email)
+
+		//Hashing password
+		match := model.CheckPasswordHash(password, user.Password)
+
+		// Response
+		return c.JSON(http.StatusOK, match)
+	})
+
 }
 
 func main() {
 
 	godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
-
 	var store model.UserStore
 	store = model.NewUserMySQL()
 

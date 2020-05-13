@@ -1,18 +1,18 @@
 package model
 
 import (
-	"crypto/sha1"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
-	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserStore interface {
 	All() []User
 	Save(*User) error
 	Find(int) *User
+	Login(string) *User
 	FindRole(int) []User
 	Update(*User) error
 	Delete(user *User) error
@@ -181,12 +181,47 @@ func (store *UserStoreMySQL) Delete(user *User) error {
 	return nil
 }
 
-func Hash(password string) string {
-	salt := fmt.Sprintf("%d", time.Now().UnixNano())
-	saltedText := fmt.Sprintf("text: '%s', salt: %s", password, salt)
-	sha := sha1.New()
-	sha.Write([]byte(saltedText))
-	encrypted := sha.Sum(nil)
+func (store *UserStoreMySQL) Login(email string) *User {
+	user := User{}
 
-	return fmt.Sprintf("%x", encrypted)
+	err := store.DB.
+		QueryRow(`SELECT * FROM user WHERE email=?`, email).
+		Scan(
+			&user.ID,
+			&user.Name,
+			&user.Address,
+			&user.Telp,
+			&user.Email,
+			&user.Password,
+			&user.Role,
+			&user.Token,
+		)
+
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	return &user
+}
+
+// func Hash(password string) string {
+// 	salt := fmt.Sprintf("%d", time.Now().UnixNano())
+// 	saltedText := fmt.Sprintf("text: '%s', salt: %s", password, salt)
+// 	sha := sha1.New()
+// 	sha.Write([]byte(saltedText))
+// 	encrypted := sha.Sum(nil)
+
+// 	return fmt.Sprintf("%x", encrypted)
+// }
+
+func Hash(password string) ([]byte, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	return hashed, err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
