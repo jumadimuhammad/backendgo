@@ -35,7 +35,6 @@ type User struct {
 
 func NewUserMySQL() UserStore {
 	dsn := os.Getenv("DATABASE_USER") + ":" + os.Getenv("DATABASE_PASSWORD") + "@tcp(" + os.Getenv("DATABASE_HOST") + ")/" + os.Getenv("DATABASE_NAME") + "?parseTime=true&clientFoundRows=true"
-	// dsn := "root:password@tcp(localhost:3308)/db_charity?parseTime=true&clientFoundRows=true"
 	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
@@ -84,7 +83,8 @@ func (store *UserStoreMySQL) Save(user *User) error {
 	)
 
 	if err != nil {
-		return err
+		log.Fatal(err)
+		return nil
 	}
 
 	_, err = result.RowsAffected()
@@ -205,20 +205,14 @@ func (store *UserStoreMySQL) Login(email string) *User {
 	return &user
 }
 
-// func Hash(password string) string {
-// 	salt := fmt.Sprintf("%d", time.Now().UnixNano())
-// 	saltedText := fmt.Sprintf("text: '%s', salt: %s", password, salt)
-// 	sha := sha1.New()
-// 	sha.Write([]byte(saltedText))
-// 	encrypted := sha.Sum(nil)
-
-// 	return fmt.Sprintf("%x", encrypted)
-// }
-
-func Hash(password string) ([]byte, error) {
+func Hash(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	return hashed, err
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(hashed), err
 }
 
 func CheckPasswordHash(password, hash string) bool {

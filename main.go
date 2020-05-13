@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -67,12 +66,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		token := "secret"
 
 		//Hashing password
-		hash, err := model.Hash(password)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		hashpwd := string(hash)
+		hashpwd, _ := model.Hash(password)
 
 		// Create instabce
 		user, _ := model.CreateUser(name, address, telp, email, hashpwd, role, token)
@@ -96,14 +90,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		user.Email = c.FormValue("email")
 		password := c.FormValue("password")
 
-		hash, err := model.Hash(password)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		hashpwd := string(hash)
-
-		user.Password = hashpwd
+		user.Password, _ = model.Hash(password)
 
 		// Persists
 		store.Update(user)
