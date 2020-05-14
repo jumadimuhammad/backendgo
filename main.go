@@ -163,10 +163,7 @@ func main() {
 	store = model.NewUserMySQL()
 
 	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://labstack.com", "https://labstack.net"},
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-	}))
+	e.Use(middleware.CORS())
 	app(e, store)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
