@@ -4,14 +4,56 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/jumadimuhammad/backendgo/model"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
+func restricted(c echo.Context) error {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	name := claims["name"].(string)
+	return c.String(http.StatusOK, "Welcome "+name+"!")
+}
+
 func app(e *echo.Echo, store model.UserStore) {
+
+	e.POST("/login", func(c echo.Context) error {
+		// Given
+		email := c.FormValue("email")
+		password := c.FormValue("password")
+
+		user := store.Login(email)
+
+		//Check password
+		err := model.CheckPasswordHash(password, user.Password)
+
+		if err != true {
+			return echo.ErrUnauthorized
+		}
+
+		// Create token
+		token := jwt.New(jwt.SigningMethodHS256)
+
+		// Set claims
+		claims := token.Claims.(jwt.MapClaims)
+		claims["name"] = user.Name
+		claims["admin"] = true
+		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+		// Generate encoded token and send it as response.
+		t, _ := token.SignedString([]byte("secret"))
+
+		// Response
+		return c.JSON(http.StatusOK, map[string]string{
+			"token": t,
+		})
+	})
 
 	// curl http://localhost:8080
 	e.GET("/", func(c echo.Context) error {
@@ -112,21 +154,6 @@ func app(e *echo.Echo, store model.UserStore) {
 		// Response
 		return c.JSON(http.StatusOK, user)
 	})
-
-	e.POST("/login", func(c echo.Context) error {
-		// Given
-		email := c.FormValue("email")
-		password := c.FormValue("password")
-
-		user := store.Login(email)
-
-		//Hashing password
-		match := model.CheckPasswordHash(password, user.Password)
-
-		// Response
-		return c.JSON(http.StatusOK, match)
-	})
-
 }
 
 func main() {
@@ -136,6 +163,10 @@ func main() {
 	store = model.NewUserMySQL()
 
 	e := echo.New()
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://labstack.com", "https://labstack.net"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
 	app(e, store)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
