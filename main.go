@@ -42,8 +42,8 @@ func app(e *echo.Echo, store model.UserStore) {
 
 		// Set claims
 		claims := token.Claims.(jwt.MapClaims)
-		claims["name"] = user.Name
-		claims["admin"] = true
+		claims["id"] = user.ID
+		claims["isLogin"] = true
 		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
 		// Generate encoded token and send it as response.
