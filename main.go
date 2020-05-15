@@ -15,81 +15,7 @@ import (
 )
 
 func app(e *echo.Echo, store model.UserStore) {
-
-	e.POST("/login", func(c echo.Context) error {
-		email := c.FormValue("email")
-		password := c.FormValue("password")
-
-		user := store.Login(email)
-
-		err := model.CheckPasswordHash(password, user.Password)
-
-		if err != true {
-			return echo.ErrUnauthorized
-		}
-
-		token := jwt.New(jwt.SigningMethodHS256)
-
-		claims := token.Claims.(jwt.MapClaims)
-		claims["id"] = user.ID
-		claims["name"] = user.Name
-		claims["isLogin"] = true
-		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-		t, _ := token.SignedString([]byte("secret"))
-
-		return c.JSON(http.StatusOK, map[string]string{
-			"token": t,
-		})
-	})
-
-	e.PUT("/users/:id", func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-
-		user := store.Find(id)
-		user.Name = c.FormValue("name")
-		user.Address = c.FormValue("address")
-		user.Telp, _ = strconv.Atoi(c.FormValue("telp"))
-		user.Email = c.FormValue("email")
-		password := c.FormValue("password")
-
-		user.Password, _ = model.Hash(password)
-
-		store.Update(user)
-
-		return c.JSON(http.StatusOK, user)
-	})
-
-	e.GET("/", func(c echo.Context) error {
-
-		user := "Welcome......."
-
-		return c.JSON(http.StatusOK, user)
-	})
-
-	e.GET("/users", func(c echo.Context) error {
-		users := store.All()
-
-		return c.JSON(http.StatusOK, users)
-	})
-
-	e.GET("/users/:id", func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-
-		user := store.Find(id)
-
-		return c.JSON(http.StatusOK, user)
-	})
-
-	e.GET("/users/:role/role", func(c echo.Context) error {
-		role, _ := strconv.Atoi(c.Param("role"))
-
-		users := store.FindRole(role)
-
-		return c.JSON(http.StatusOK, users)
-	})
-
-	e.POST("/users", func(c echo.Context) error {
+	e.POST("/register", func(c echo.Context) error {
 		name := c.FormValue("name")
 		address := c.FormValue("address")
 		telp, _ := strconv.Atoi(c.FormValue("telp"))
@@ -117,7 +43,78 @@ func app(e *echo.Echo, store model.UserStore) {
 		return c.JSON(http.StatusOK, user)
 	})
 
-	e.DELETE("/users/:id", func(c echo.Context) error {
+	e.POST("/login", func(c echo.Context) error {
+		email := c.FormValue("email")
+		password := c.FormValue("password")
+
+		if password == "" || email == "" {
+			return echo.ErrUnauthorized
+		}
+
+		user := store.Login(email)
+
+		err := model.CheckPasswordHash(password, user.Password)
+
+		if err != true {
+			return echo.ErrUnauthorized
+		}
+
+		token := jwt.New(jwt.SigningMethodHS256)
+
+		claims := token.Claims.(jwt.MapClaims)
+		claims["id"] = user.ID
+		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+		t, _ := token.SignedString([]byte("secret"))
+
+		return c.JSON(http.StatusOK, map[string]string{
+			"token": t,
+		})
+	})
+
+	e.GET("/", func(c echo.Context) error {
+		users := store.All()
+
+		return c.JSON(http.StatusOK, users)
+	})
+
+	r := e.Group("/users")
+	r.Use(middleware.JWT([]byte("secret")))
+
+	r.GET("/:id", func(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("id"))
+
+		user := store.Find(id)
+
+		return c.JSON(http.StatusOK, user)
+	})
+
+	r.GET("/:role/role", func(c echo.Context) error {
+		role, _ := strconv.Atoi(c.Param("role"))
+
+		users := store.FindRole(role)
+
+		return c.JSON(http.StatusOK, users)
+	})
+
+	r.PUT("/:id", func(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("id"))
+
+		user := store.Find(id)
+		user.Name = c.FormValue("name")
+		user.Address = c.FormValue("address")
+		user.Telp, _ = strconv.Atoi(c.FormValue("telp"))
+		user.Email = c.FormValue("email")
+		password := c.FormValue("password")
+
+		user.Password, _ = model.Hash(password)
+
+		store.Update(user)
+
+		return c.JSON(http.StatusOK, user)
+	})
+
+	r.DELETE("/:id", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
 
 		user := store.Find(id)
