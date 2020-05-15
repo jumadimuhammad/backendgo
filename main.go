@@ -73,14 +73,15 @@ func app(e *echo.Echo, store model.UserStore) {
 		return c.JSON(http.StatusOK, users)
 	})
 
-	e.GET("/users/id", func(c echo.Context) error {
-		// id, _ := strconv.Atoi(c.Param("id"))
+	e.GET("/users/:id", func(c echo.Context) error {
+		// Given
+		id, _ := strconv.Atoi(c.Param("id"))
 
-		data := c.Get("id").(*jwt.Token)
-		claims := data.Claims.(jwt.MapClaims)
-		id := claims["id"].(int)
+		// Process
+		user := store.Find(id)
 
-		return c.JSON(http.StatusOK, id)
+		// Response
+		return c.JSON(http.StatusOK, user)
 	})
 
 	e.GET("/users/:role/role", func(c echo.Context) error {
