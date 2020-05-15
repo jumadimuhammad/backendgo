@@ -13,6 +13,7 @@ type UserStore interface {
 	Save(*User) error
 	Find(int) *User
 	Login(string) *User
+	FindEmail(string) *User
 	FindRole(int) []User
 	Update(*User) error
 	Delete(user *User) error
@@ -199,6 +200,29 @@ func (store *UserStoreMySQL) Login(email string) *User {
 
 	if err != nil {
 		log.Fatal(err)
+		return nil
+	}
+
+	return &user
+}
+
+func (store *UserStoreMySQL) FindEmail(email string) *User {
+	user := User{}
+
+	err := store.DB.
+		QueryRow(`SELECT * FROM user WHERE email=?`, email).
+		Scan(
+			&user.ID,
+			&user.Name,
+			&user.Address,
+			&user.Telp,
+			&user.Email,
+			&user.Password,
+			&user.Role,
+			&user.Token,
+		)
+
+	if err != nil {
 		return nil
 	}
 
