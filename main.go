@@ -15,7 +15,6 @@ import (
 )
 
 func app(e *echo.Echo, store model.UserStore) {
-
 	e.POST("/register", func(c echo.Context) error {
 		name := c.FormValue("name")
 		address := c.FormValue("address")
@@ -64,7 +63,6 @@ func app(e *echo.Echo, store model.UserStore) {
 
 		claims := token.Claims.(jwt.MapClaims)
 		claims["id"] = user.ID
-		claims["name"] = user.Name
 		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 		t, _ := token.SignedString([]byte("secret"))
