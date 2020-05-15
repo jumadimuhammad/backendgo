@@ -74,13 +74,10 @@ func app(e *echo.Echo, store model.UserStore) {
 	})
 
 	e.GET("/users/:id", func(c echo.Context) error {
-		// Given
 		id, _ := strconv.Atoi(c.Param("id"))
 
-		// Process
 		user := store.Find(id)
 
-		// Response
 		return c.JSON(http.StatusOK, user)
 	})
 
