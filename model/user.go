@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"log"
 	"os"
 
 	"golang.org/x/crypto/bcrypt"
@@ -84,8 +83,7 @@ func (store *UserStoreMySQL) Save(user *User) error {
 	)
 
 	if err != nil {
-		log.Fatal(err)
-		return nil
+		return err
 	}
 
 	_, err = result.RowsAffected()
@@ -121,7 +119,6 @@ func (store *UserStoreMySQL) Find(id int) *User {
 		)
 
 	if err != nil {
-		log.Fatal(err)
 		return nil
 	}
 
@@ -199,7 +196,6 @@ func (store *UserStoreMySQL) Login(email string) *User {
 		)
 
 	if err != nil {
-		log.Fatal(err)
 		return nil
 	}
 
@@ -233,7 +229,7 @@ func Hash(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		log.Fatal(err)
+		return "Error", err
 	}
 
 	return string(hashed), err
