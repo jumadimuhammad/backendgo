@@ -27,7 +27,7 @@ type User struct {
 	ID       int
 	Name     string
 	Address  string
-	Telp     int
+	Telp     string
 	Email    string
 	Password string
 	Role     string
@@ -59,7 +59,7 @@ func (store *UserStoreMySQL) All() []User {
 	return users
 }
 
-func CreateUser(name, address string, telp int, email, password, role, token string) (*User, error) {
+func CreateUser(name, address, telp, email, password, role, token string) (*User, error) {
 	return &User{
 		Name:     name,
 		Address:  address,

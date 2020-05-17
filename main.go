@@ -18,7 +18,7 @@ func app(e *echo.Echo, store model.UserStore) {
 	e.POST("/register", func(c echo.Context) error {
 		name := c.FormValue("name")
 		address := c.FormValue("address")
-		telp, _ := strconv.Atoi(c.FormValue("telp"))
+		telp := c.FormValue("telp")
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 		role := "3"
@@ -65,7 +65,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		claims["id"] = user.ID
 		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
-		t, _ := token.SignedString([]byte("secret"))
+		t, _ := token.SignedString([]byte(os.Getenv("KEY_JWT")))
 
 		return c.JSON(http.StatusOK, map[string]string{
 			"token": t,
@@ -79,7 +79,7 @@ func app(e *echo.Echo, store model.UserStore) {
 	})
 
 	r := e.Group("/users")
-	r.Use(middleware.JWT([]byte("secret")))
+	r.Use(middleware.JWT([]byte(os.Getenv("KEY_JWT"))))
 
 	r.GET("/:id", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -103,7 +103,7 @@ func app(e *echo.Echo, store model.UserStore) {
 		user := store.Find(id)
 		user.Name = c.FormValue("name")
 		user.Address = c.FormValue("address")
-		user.Telp, _ = strconv.Atoi(c.FormValue("telp"))
+		user.Telp = c.FormValue("telp")
 		user.Email = c.FormValue("email")
 		password := c.FormValue("password")
 
